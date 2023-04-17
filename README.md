@@ -1,5 +1,38 @@
 # matterbak
-Backing up mattermost channels and users
+Backing up mattermost channels (including files) and users
 
 ## Requirements
-The scripts should work with Python 2.7 and Python 3.5 or later. The mattermost module is needed for easier API access.
+The script should work with Python 3.7 or later.
+The [mattermost module](https://github.com/someone-somenet-org/mattermost-python-api) is needed for easier API access.
+It can be installed using `pip install mattermost`.
+
+## Usage
+You will need a json config (default name "credentials.json") of the following format
+```
+{
+    "user": "my_name",
+    "password": "super_secret_pass",
+    "url": "https://mattermost.server.org/api"
+}
+```
+You can either install the script using `pip install .` in a clone of the repo or just call the script directly.
+
+A call to `matterbak` (installed version) or `matterbak.py` will then retrieve all teams and channels the user
+mentioned in the credentials file is a member of and will then dump the posts and files from all those channels.
+
+If you want to backup for a different user you can use the `--backup-user <user_name>` option but you will
+need the privileges to access the data of this user.
+
+The script creates three folders "teams", "channels" and "users" which contain the data in json files.
+The "channels" folder contains a subfolder for each channel with the posts and files from the channel.
+The backup is incrementally in the sense that existing posts and users are not overwritten (and not updated!)
+
+## Notes
+There is also another more complete [Python implementation of the mattermost API](https://github.com/Vaelor/python-mattermost-driver) but it
+needs more configuration.
+
+The [official API docs](https://api.mattermost.com/) are also available.
+
+## License
+
+MIT
