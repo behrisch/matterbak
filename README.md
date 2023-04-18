@@ -19,6 +19,7 @@ You can either install the script using `pip install .` in a clone of the repo o
 
 A call to `matterbak` (installed version) or `matterbak.py` will then retrieve all teams and channels the user
 mentioned in the credentials file is a member of and will then dump the posts and files from all those channels.
+If you want to exclude channels by their name use `-x <channel1> [<channel2> ...]`.
 
 If you want to backup for a different user you can use the `--backup-user <user_name>` option but you will
 need the privileges to access the data of this user.
