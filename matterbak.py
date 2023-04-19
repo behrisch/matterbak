@@ -10,6 +10,8 @@ def main():
     parser.add_argument("--backup-user")
     parser.add_argument("-x", "--exclude", default=[], nargs="*",
                         help="list of channel names to exclude")
+    parser.add_argument("-i", "--include", nargs="*",
+                        help="list of channel names to include")
     options = parser.parse_args()
     with open(options.credentials, encoding="utf8") as cred_file:
         creds = json.load(cred_file)
@@ -31,7 +33,10 @@ def main():
             with open(os.path.join("teams", team["name"] + ".json"), "w", encoding="utf8") as desc:
                 json.dump(team, desc)
             for chnl in matter.get_channels_for_user(user["id"], team["id"]):
-                if chnl["display_name"] not in options.exclude and chnl["name"] not in options.exclude:
+                if options.include:
+                    if chnl["display_name"] in options.include or chnl["name"] in options.include:
+                        channels.append(chnl)
+                elif chnl["display_name"] not in options.exclude and chnl["name"] not in options.exclude:
                     channels.append(chnl)
     for chnl in channels:
         name = chnl["name"]
