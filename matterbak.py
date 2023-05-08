@@ -2,21 +2,31 @@ import argparse
 import datetime
 import json
 import os
+import zipfile
+
 import mattermost
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--credentials", default="credentials.json")
-    parser.add_argument("--backup-user")
+    parser.add_argument("--credentials", default="credentials.json",
+                        help="json file containing user name, password and server URL")
+    parser.add_argument("--backup-user",
+                        help="user name to backup, default is the one from credentials")
+    parser.add_argument("--output-zip",
+                        help="zip file to write, default is 'matterbak_<user>.zip'")
     parser.add_argument("-x", "--exclude", default=[], nargs="*",
                         help="list of channel names to exclude")
     parser.add_argument("-i", "--include", nargs="*",
                         help="list of channel names to include")
+    parser.add_argument("-a", "--all", action="store_true", default=False,
+                        help="include also public channels")
     options = parser.parse_args()
     with open(options.credentials, encoding="utf8") as cred_file:
         creds = json.load(cred_file)
     if options.backup_user is None:
         options.backup_user = creds["user"]
+    if options.output_zip is None:
+        options.output_zip = "matterbak_%s.zip" % options.backup_user
     matter = mattermost.MMApi(creds["url"])
     matter.login(creds["user"], creds["password"])
     for cat in ("teams", "channels", "users"):
@@ -33,11 +43,12 @@ def main():
             with open(os.path.join("teams", team["name"] + ".json"), "w", encoding="utf8") as desc:
                 json.dump(team, desc)
             for chnl in matter.get_channels_for_user(user["id"], team["id"]):
-                if options.include:
-                    if chnl["display_name"] in options.include or chnl["name"] in options.include:
+                if options.all or chnl["type"] != "O":
+                    if options.include:
+                        if chnl["display_name"] in options.include or chnl["name"] in options.include:
+                            channels.append(chnl)
+                    elif chnl["display_name"] not in options.exclude and chnl["name"] not in options.exclude:
                         channels.append(chnl)
-                elif chnl["display_name"] not in options.exclude and chnl["name"] not in options.exclude:
-                    channels.append(chnl)
     for chnl in channels:
         name = chnl["name"]
         for i, data in user_data.items():
@@ -62,6 +73,13 @@ def main():
                 if not os.path.exists(file_dump):
                     with open(file_dump, "wb") as dump:
                         dump.write(matter.get_file(file_desc["id"]).content)
+    with zipfile.ZipFile(options.output_zip, "w") as zipf:
+        for d in ("teams", "users"):
+            for f in os.listdir(d):
+                zipf.write(os.path.join(d, f))
+        for root, _, files in os.walk("channels"):
+            for f in files:
+                zipf.write(os.path.join(root, f))
 
 
 if __name__ == "__main__":
