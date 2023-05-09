@@ -33,14 +33,27 @@ def main():
                     keys = ("name", "display_name", "type", "description", "allow_open_invite")
                     json.dump({ "type": "team", "team": {key: team[key] for key in keys}}, jsonl)
                     print(file=jsonl)
+        users = {}
         for z in zips:
             for n in z.namelist():
                 if n.startswith("channels/") and n.count("/") == 1:
                     channel = json.load(z.open(n))
-                    chnl = {key: channel[key] for key in ("name", "display_name", "type", "header", "purpose")}
-                    chnl["team"] = teams.get(channel["team_id"], "")
-                    json.dump({ "type": "channel", "channel": chnl}, jsonl)
-                    print(file=jsonl)
+                    if channel["type"] in "OP":
+                        chnl = {key: channel[key] for key in ("name", "display_name", "type", "header", "purpose")}
+                        chnl["team"] = teams.get(channel["team_id"], "")
+                        json.dump({ "type": "channel", "channel": chnl}, jsonl)
+                        print(file=jsonl)
+                if n.startswith("users/"):
+                    user = json.load(z.open(n))
+                    if user["email"] or user["username"] not in users:
+                        users[user["username"]] = user
+        for user in users.values():
+            keys = ("username", "email", "nickname", "first_name", "last_name", "position", "roles", "locale")
+            udump = {key: user[key] for key in keys}
+            if "notify_props" in user:
+                udump["notify_props"] = user["notify_props"]
+            json.dump({ "type": "user", "user": udump}, jsonl)
+            print(file=jsonl)
 
 
 if __name__ == "__main__":
