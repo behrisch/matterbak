@@ -1,3 +1,7 @@
+#!/usr/bin/env python3
+"""
+matterbak does a backup for all channels of a user in a mattermost instance
+"""
 import argparse
 import datetime
 import json
@@ -7,6 +11,7 @@ import zipfile
 import mattermost
 
 def main():
+    """Main function, also entry point for the matterbak script"""
     parser = argparse.ArgumentParser()
     parser.add_argument("--credentials", default="credentials.json",
                         help="json file containing user name, password and server URL")
