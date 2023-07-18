@@ -68,10 +68,11 @@ def main():
             if not os.path.exists(post_json):
                 with open(post_json, "w", encoding="utf8") as desc:
                     json.dump(post, desc)
-            user_json = os.path.join("users", user_data[post["user_id"]]["username"] + ".json")
-            if not os.path.exists(user_json):
-                with open(user_json, "w", encoding="utf8") as desc:
-                    json.dump(user_data[post["user_id"]], desc)
+            if post["user_id"] in user_data:
+                user_json = os.path.join("users", user_data[post["user_id"]]["username"] + ".json")
+                if not os.path.exists(user_json):
+                    with open(user_json, "w", encoding="utf8") as desc:
+                        json.dump(user_data[post["user_id"]], desc)
             for file_desc in post["metadata"].get("files", []):
                 ext = file_desc["extension"]
                 file_dump = os.path.join(prefix, file_desc["id"] + "." + ext)
